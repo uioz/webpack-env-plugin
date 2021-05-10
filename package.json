@@ -2,7 +2,8 @@
   "name": "webpack-env-plugin",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "types",
   "scripts": {
     "dev": "tsc -w",
     "build": "tsc",
@@ -22,6 +23,10 @@
   "devDependencies": {
     "@types/node": "^14.14.44",
     "typescript": "^4.2.4",
-    "webpack": "^5.36.2"
+    "webpack": "^5.36.2",
+    "webpack-cli": "^4.7.0"
+  },
+  "dependencies": {
+    "dotenv": "^9.0.1"
   }
 }
