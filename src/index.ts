@@ -1,21 +1,22 @@
+import { readFileSync } from 'fs';
 import path from 'path';
 import { WebpackPluginInstance, Compiler, DefinePlugin } from 'webpack';
-import { config, DotenvConfigOutput } from 'dotenv';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import _merge from 'lodash.merge';
+import toml from '@ltd/j-toml';
 
 interface Options {
-  runtimeEnvFilePath?: string;
-  compileEnvFilePath?: string;
-  debug?: boolean;
-  encoding?: string;
+  envFilePath?: string;
 }
 
-function objectToEnv(obj: { [key: string]: any }) {
-  const copy = { ...obj };
-  for (const [key, value] of Object.entries(copy)) {
-    copy[key] = JSON.stringify(value);
-  }
-  return copy;
+type Mode = {
+  dev?: { [key: string]: string };
+  pord?: { [key: string]: string };
+};
+
+interface EnvStructure {
+  runtime?: Mode;
+  compile?: Mode;
 }
 
 function template(env: { [key: string]: any }) {
@@ -37,37 +38,63 @@ function template(env: { [key: string]: any }) {
   return IIFE(expressions.join('\n'));
 }
 
+function parseEnv(envFilePath: string) {
+  const { name, ext, dir } = path.parse(envFilePath);
+
+  const defaultEnv: EnvStructure = toml.parse(
+    readFileSync(envFilePath),
+    1,
+    '\n',
+    false
+  );
+
+  try {
+    _merge(
+      defaultEnv,
+      toml.parse(
+        readFileSync(path.join(dir, `${name}.local${ext}`)),
+        1,
+        '\n',
+        false
+      )
+    );
+  } finally {
+    return defaultEnv;
+  }
+}
+
 export class WebpackEnvPlugin implements WebpackPluginInstance {
   constructor(private options: Options = {}) {}
 
   handleOptions(context: string): Required<Options> {
     const options = this.options;
 
-    options.runtimeEnvFilePath = path.join(
-      context,
-      options.runtimeEnvFilePath ?? '.env.runtime'
-    );
-
-    options.compileEnvFilePath = path.join(
-      context,
-      options.compileEnvFilePath ?? '.env.compile'
-    );
+    options.envFilePath = path.join(context, options.envFilePath ?? 'env.toml');
 
     return options as Required<Options>;
   }
 
-  handleRuntimeEnv(dotEnv: DotenvConfigOutput, compiler: Compiler) {
-    if (dotEnv.error) {
-      throw dotEnv.error;
-    }
+  handleRuntimeEnv(envs: Mode, compiler: Compiler) {
+    compiler.hooks.compilation.tap('WebpackEnvPlugin', (compilation) => {
+      HtmlWebpackPlugin.getHooks(compilation).alterAssetTags.tapAsync(
+        'WebpackEnvPlugin',
+        (options, callback) => {
+          let innerHTML: string = '';
 
-    const { parsed: envs } = dotEnv;
+          switch (compiler.options.mode) {
+            case 'development':
+              if (envs.dev) {
+                innerHTML = template(envs.dev);
+              }
+              break;
+            default:
+              if (envs.pord) {
+                innerHTML = template(envs.pord);
+              }
+              break;
+          }
 
-    if (envs) {
-      compiler.hooks.compilation.tap('WebpackEnvPlugin', (compilation) => {
-        HtmlWebpackPlugin.getHooks(compilation).alterAssetTags.tapAsync(
-          'WebpackEnvPlugin',
-          (options, callback) => {
+          if (innerHTML) {
             options.assetTags.scripts.unshift({
               tagName: 'script',
               attributes: {},
@@ -75,50 +102,46 @@ export class WebpackEnvPlugin implements WebpackPluginInstance {
                 plugin: 'webpack-env-plugin',
               },
               voidTag: false,
-              innerHTML: template(objectToEnv(envs)),
+              innerHTML,
             });
-
-            callback(null, options);
           }
-        );
-      });
-    }
+
+          callback(null, options);
+        }
+      );
+    });
 
     return this;
   }
 
-  handleCompileEnv(dotEnv: DotenvConfigOutput, compiler: Compiler) {
-    if (dotEnv.error) {
-      throw dotEnv.error;
-    }
-
-    const { parsed: envs } = dotEnv;
-
-    if (envs) {
-      new DefinePlugin(objectToEnv(envs)).apply(compiler);
+  handleCompileEnv(envs: Mode, compiler: Compiler) {
+    switch (compiler.options.mode) {
+      case 'development':
+        if (envs.dev) {
+          new DefinePlugin(envs.dev).apply(compiler);
+        }
+        break;
+      default:
+        if (envs.pord) {
+          new DefinePlugin(envs.pord).apply(compiler);
+        }
+        break;
     }
 
     return this;
   }
 
   apply(compiler: Compiler) {
-    const { runtimeEnvFilePath, compileEnvFilePath, debug, encoding } =
-      this.handleOptions(compiler.context);
+    const { envFilePath } = this.handleOptions(compiler.context);
 
-    this.handleRuntimeEnv(
-      config({
-        path: runtimeEnvFilePath,
-        debug,
-        encoding,
-      }),
-      compiler
-    ).handleCompileEnv(
-      config({
-        path: compileEnvFilePath,
-        debug,
-        encoding,
-      }),
-      compiler
-    );
+    const data = parseEnv(envFilePath);
+
+    if (data.runtime) {
+      this.handleRuntimeEnv(data.runtime, compiler);
+    }
+
+    if (data.compile) {
+      this.handleCompileEnv(data.compile, compiler);
+    }
   }
 }
