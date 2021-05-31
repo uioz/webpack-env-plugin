@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "html-webpack-plugin": "file:../../node_modules/html-webpack-plugin",
     "webpack": "file:../../node_modules/webpack",
     "webpack-env-plugin": "file:../.."
   }

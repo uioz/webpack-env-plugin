@@ -1,12 +1,40 @@
 import path from 'path';
-import { WebpackPluginInstance, Compiler } from 'webpack';
-import { config, DotenvConfigOutput, DotenvConfigOptions } from 'dotenv';
+import { WebpackPluginInstance, Compiler, DefinePlugin } from 'webpack';
+import { config, DotenvConfigOutput } from 'dotenv';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
 
 interface Options {
   runtimeEnvFilePath?: string;
   compileEnvFilePath?: string;
   debug?: boolean;
   encoding?: string;
+}
+
+function objectToEnv(obj: { [key: string]: any }) {
+  const copy = { ...obj };
+  for (const [key, value] of Object.entries(copy)) {
+    copy[key] = JSON.stringify(value);
+  }
+  return copy;
+}
+
+function template(env: { [key: string]: any }) {
+  const IIFE = (code: string) => `
+;(function () {
+  ${code}
+})();
+`;
+
+  const expression = (key: string, value: string) =>
+    `window.${key} = ${value};`;
+
+  const expressions = [];
+
+  for (const [key, value] of Object.entries(env)) {
+    expressions.push(expression(key, value));
+  }
+
+  return IIFE(expressions.join('\n'));
 }
 
 export class WebpackEnvPlugin implements WebpackPluginInstance {
@@ -35,7 +63,26 @@ export class WebpackEnvPlugin implements WebpackPluginInstance {
 
     const { parsed: envs } = dotEnv;
 
-    console.log(envs);
+    if (envs) {
+      compiler.hooks.compilation.tap('WebpackEnvPlugin', (compilation) => {
+        HtmlWebpackPlugin.getHooks(compilation).alterAssetTags.tapAsync(
+          'WebpackEnvPlugin',
+          (options, callback) => {
+            options.assetTags.scripts.unshift({
+              tagName: 'script',
+              attributes: {},
+              meta: {
+                plugin: 'webpack-env-plugin',
+              },
+              voidTag: false,
+              innerHTML: template(objectToEnv(envs)),
+            });
+
+            callback(null, options);
+          }
+        );
+      });
+    }
 
     return this;
   }
@@ -47,18 +94,16 @@ export class WebpackEnvPlugin implements WebpackPluginInstance {
 
     const { parsed: envs } = dotEnv;
 
-    console.log(envs);
+    if (envs) {
+      new DefinePlugin(objectToEnv(envs)).apply(compiler);
+    }
 
     return this;
   }
 
   apply(compiler: Compiler) {
-    const {
-      runtimeEnvFilePath,
-      compileEnvFilePath,
-      debug,
-      encoding,
-    } = this.handleOptions(compiler.context);
+    const { runtimeEnvFilePath, compileEnvFilePath, debug, encoding } =
+      this.handleOptions(compiler.context);
 
     this.handleRuntimeEnv(
       config({
