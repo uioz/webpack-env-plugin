@@ -6,7 +6,9 @@ module.exports = {
   mode: 'development',
   entry: './index.js',
   plugins: [
-    new WebpackEnvPlugin(),
+    new WebpackEnvPlugin({
+      envFilePath: './test.toml',
+    }),
     new HtmlWebpackPlugin(),
   ],
 };

@@ -1,0 +1,15 @@
+[runtime]
+  [runtime.dev]
+  type = '"runtime.local"'
+  mode = '"development.local"'
+  [runtime.pord]
+  type = '"runtime.local"'
+  mode = '"production.local"'
+
+[compile]
+  [compile.dev]
+  type = '"compile.local"'
+  mode = [1,2,3]
+  [compile.pord]
+  type = '"compile.local"'
+  mode = '"production.local"'

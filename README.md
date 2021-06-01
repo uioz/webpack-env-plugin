@@ -21,9 +21,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   plugins: [
     new WebpackEnvPlugin(),
-    new HtmlWebpackPlugin({
-      template: './template.html',
-    }),
+    new HtmlWebpackPlugin(),
   ],
 };
 ```
