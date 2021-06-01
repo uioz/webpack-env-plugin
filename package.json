@@ -14,9 +14,17 @@
     "type": "git",
     "url": "git+https://github.com/uioz/webpack-env-plugin.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "webpack",
+    "plugin",
+    "webpack-plugin",
+    "env",
+    "toml",
+    "environment",
+    "variables"
+  ],
+  "author": "uioz",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/uioz/webpack-env-plugin/issues"
   },
