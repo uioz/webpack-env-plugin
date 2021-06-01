@@ -58,9 +58,11 @@ function parseEnv(envFilePath: string) {
         false
       )
     );
-  } finally {
-    return defaultEnv;
+  } catch {
+    //
   }
+
+  return defaultEnv;
 }
 
 export class WebpackEnvPlugin implements WebpackPluginInstance {
@@ -74,12 +76,12 @@ export class WebpackEnvPlugin implements WebpackPluginInstance {
     return options as Required<Options>;
   }
 
-  handleRuntimeEnv(envs: Mode, compiler: Compiler) {
+  handleRuntimeEnv(envs: Mode, compiler: Compiler): void {
     compiler.hooks.compilation.tap('WebpackEnvPlugin', (compilation) => {
       HtmlWebpackPlugin.getHooks(compilation).alterAssetTags.tapAsync(
         'WebpackEnvPlugin',
         (options, callback) => {
-          let innerHTML: string = '';
+          let innerHTML = '';
 
           switch (compiler.options.mode) {
             case 'development':
@@ -110,11 +112,9 @@ export class WebpackEnvPlugin implements WebpackPluginInstance {
         }
       );
     });
-
-    return this;
   }
 
-  handleCompileEnv(envs: Mode, compiler: Compiler) {
+  handleCompileEnv(envs: Mode, compiler: Compiler): void {
     switch (compiler.options.mode) {
       case 'development':
         if (envs.dev) {
@@ -127,11 +127,9 @@ export class WebpackEnvPlugin implements WebpackPluginInstance {
         }
         break;
     }
-
-    return this;
   }
 
-  apply(compiler: Compiler) {
+  apply(compiler: Compiler): void {
     const { envFilePath } = this.handleOptions(compiler.context);
 
     const data = parseEnv(envFilePath);
