@@ -1,4 +1,4 @@
-const { WebpackEnvPlugin } = require('webpack-env-plugin');
+const { WebpackTomlenvPlugin } = require('webpack-env-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -6,7 +6,7 @@ module.exports = {
   mode: 'development',
   entry: './index.js',
   plugins: [
-    new WebpackEnvPlugin({
+    new WebpackTomlenvPlugin({
       envFilePath: './test.toml',
     }),
     new HtmlWebpackPlugin(),

@@ -65,7 +65,7 @@ function parseEnv(envFilePath: string) {
   return defaultEnv;
 }
 
-export class WebpackEnvPlugin implements WebpackPluginInstance {
+export class WebpackTomlenvPlugin implements WebpackPluginInstance {
   constructor(private options: Options = {}) {}
 
   handleOptions(context: string): Required<Options> {
@@ -77,9 +77,9 @@ export class WebpackEnvPlugin implements WebpackPluginInstance {
   }
 
   handleRuntimeEnv(envs: Mode, compiler: Compiler): void {
-    compiler.hooks.compilation.tap('WebpackEnvPlugin', (compilation) => {
+    compiler.hooks.compilation.tap('WebpackTomlenvPlugin', (compilation) => {
       HtmlWebpackPlugin.getHooks(compilation).alterAssetTags.tapAsync(
-        'WebpackEnvPlugin',
+        'WebpackTomlenvPlugin',
         (options, callback) => {
           let innerHTML = '';
 
@@ -101,7 +101,7 @@ export class WebpackEnvPlugin implements WebpackPluginInstance {
               tagName: 'script',
               attributes: {},
               meta: {
-                plugin: 'webpack-env-plugin',
+                plugin: 'webpack-tomlenv-plugin',
               },
               voidTag: false,
               innerHTML,

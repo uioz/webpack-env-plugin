@@ -1,4 +1,4 @@
-# webpack-env-plugin
+# webpack-tomlenv-plugin
 
 基于 `TOML` 格式, 支持运行时和编译时环境变量注入插件.
 
@@ -12,17 +12,14 @@
 
 # Usage
 
-在 `webpack` 的配置文件中, 引入 `webpack-env-plugin`:
+在 `webpack` 的配置文件中, 引入 `webpack-tomlenv-plugin`:
 
 ```javascript
-const { WebpackEnvPlugin } = require('webpack-env-plugin');
+const { WebpackTomlenvPlugin } = require('webpack-tomlenv-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  plugins: [
-    new WebpackEnvPlugin(),
-    new HtmlWebpackPlugin(),
-  ],
+  plugins: [new WebpackTomlenvPlugin(), new HtmlWebpackPlugin()],
 };
 ```
 
@@ -50,7 +47,7 @@ module.exports = {
 
 `TOML` 的完整语法可以在[这里](https://toml.io/en/)找到.
 
-配置文件中的所有选项都是可选的, `[runtime]` 和 `[compile]` 外的属性 `webpack-env-plugin` 不会去处理.
+配置文件中的所有选项都是可选的, `[runtime]` 和 `[compile]` 外的属性 `webpack-tomlenv-plugin` 不会去处理.
 
 在 `index.js` 可以引用这些变量:
 
@@ -62,8 +59,8 @@ console.log(mode);
 假设当前 `webpack` 是开发模式, 最终编译后的结果为:
 
 ```javascript
-console.log("compile");
-console.log("development");
+console.log('compile');
+console.log('development');
 ```
 
 在生成的 `HTML` 上会被插入如下的 `script` 的标签:
@@ -71,8 +68,8 @@ console.log("development");
 ```html
 <script>
   (function () {
-    window.type = "runtime";
-    window.mode = "development";
+    window.type = 'runtime';
+    window.mode = 'development';
   })();
 </script>
 ```
@@ -97,7 +94,7 @@ interface Options {
 
 # .local.toml
 
-如果你给默认的配置文件名的末尾添加了 `.local` 例如默认的 `env.local.toml`, 那么 `webpack-env-plugin` 会尝试优先解析带有 `.local` 的文件, 然后将其所有的属性覆盖到原有的 `env.toml` 上.
+如果你给默认的配置文件名的末尾添加了 `.local` 例如默认的 `env.local.toml`, 那么 `webpack-tomlenv-plugin` 会尝试优先解析带有 `.local` 的文件, 然后将其所有的属性覆盖到原有的 `env.toml` 上.
 
 这样做的目的是你可以将 `env.local.toml` 添加到 `.gitignore` 规则中, 用在开发调试时后使用, 而不用修改已经被 `git` 追踪的 `env.toml` 以防止有人不小心将修改错了的 `env.toml` 提交到代码仓库中.
 
