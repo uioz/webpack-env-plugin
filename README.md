@@ -5,8 +5,8 @@
 # Note
 
 - 本插件依赖 `html-webpack-plugin` 来注入运行时变量, 需要和 `html-webpack-plugin` 一起使用
-- 编译时环境变量注入基于 `webpack.dllPlugin` 与现有的 `TOML` 解析器存在兼容问题, 在极端情况下会出现错误, 例如:
-  - `TOML` 所支持的日期字符串被解析为特定的 `Date` 格式, 无法被 `dllPlugin` 识别
+- 编译时环境变量注入基于 `webpack.definePlugin` 与现有的 `TOML` 解析器存在兼容问题, 在极端情况下会出现错误, 例如:
+  - `TOML` 所支持的日期字符串被解析为特定的 `Date` 格式, 无法被 `definePlugin` 识别
   - 超出了 JavaScript 限制的数值
 - 运行时环境变量注入只支持表达式, 编译时则可以识别 `TOML` 中的其他数据类型
 
