@@ -20,14 +20,9 @@ interface EnvStructure {
 }
 
 function template(env: { [key: string]: any }) {
-  const IIFE = (code: string) => `
-;(function () {
-  ${code}
-})();
-`;
+  const IIFE = (code: string) => `;(function(){${code}})();`;
 
-  const expression = (key: string, value: string) =>
-    `window.${key} = ${value};`;
+  const expression = (key: string, value: string) => `window.${key}=${value};`;
 
   const expressions = [];
 
@@ -35,7 +30,7 @@ function template(env: { [key: string]: any }) {
     expressions.push(expression(key, value));
   }
 
-  return IIFE(expressions.join('\n'));
+  return IIFE(expressions.join(''));
 }
 
 function parseEnv(envFilePath: string) {
