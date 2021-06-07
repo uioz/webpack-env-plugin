@@ -8,6 +8,12 @@
 - 编译时环境变量注入基于 `webpack.definePlugin` 与 TOML 存在兼容问题, 具体可以查看[兼容性](#兼容性)一节
 - 目前运行时环境变量注入只支持表达式, 编译时则可以识别 `TOML` 中的其他数据类型
 
+# Install
+
+```bash
+npm install webpack-tomlenv-plugin -D
+```
+
 # Usage
 
 在 `webpack` 的配置文件中, 引入 `webpack-tomlenv-plugin`:
